@@ -37,7 +37,7 @@ services:
       - elk
     depends_on:
       - elasticsearch
-        deploy:
+    deploy:
       restart_policy:
         condition: on-failure
         delay: 5s
