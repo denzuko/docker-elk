@@ -4,15 +4,16 @@ version: '3.4'
 services:
 
   elasticsearch:
-    build:
-      context: ./elasticsearch/
-    volumes:
-      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.3
     ports:
       - "9200:9200"
       - "9300:9300"
     environment:
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ES_CLUSTER_NAME: "docker-cluster"
+      ES_NETWORK_HOST: 0.0.0.0
+      ES_DISCOVERY_ZEN_MINIMUM_MASTER_NODES: 1
+      ES_DISCOVERY_TYPE: single-node
     networks:
       - elk
     deploy:
@@ -22,17 +23,16 @@ services:
         max_attempts: 3
         window: 120s
 
-
   logstash:
-    build:
-      context: ./logstash/
+    image: docker.elastic.co/logstash/logstash-oss:6.2.3
     volumes:
-      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
     ports:
       - "5000:5000"
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+      LS_HTTP_HOST: "0.0.0.0"
+      LS_PATH_CONFIG: /usr/share/logstash/pipeline
     networks:
       - elk
     depends_on:
@@ -44,12 +44,10 @@ services:
         max_attempts: 3
         window: 120s
 
-
   kibana:
-    build:
-      context: ./kibana/
-    volumes:
-      - ./kibana/config/:/usr/share/kibana/config:ro
+    image: docker.elastic.co/kibana/kibana-oss:6.2.3
+    environment:
+      ELASTICSEARCH_URL: "http://elasticsearch:9200"
     ports:
       - "5601:5601"
     networks:
@@ -63,8 +61,5 @@ services:
         max_attempts: 3
         window: 120s
 
-
 networks:
-
-  elk:
-    driver: bridge
+  elk: {}
